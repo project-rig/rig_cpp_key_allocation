@@ -26,9 +26,9 @@ namespace BitSet
       // Call a function with each element that is in the set
       template<typename Lambda> inline void ForEach(Lambda f) const;
 
-      // Call a function with each element that is in this set but is not
-      // within another set.
-      template<typename Lambda> inline void DifferenceForEach(
+      // Call a function with each element that is in both this set and another
+      // set.
+      template<typename Lambda> inline void ForEachIntersection(
           const BitSet& other, Lambda func) const;
 
     protected:
@@ -123,8 +123,15 @@ namespace BitSet
       func(index + skip);
 
       // Progress the index and shift the word
-      index += skip + 1;
-      word >>= (skip + 1);
+      if (skip < 31)
+      {
+        index += skip + 1;
+        word >>= (skip + 1);
+      }
+      else
+      {
+        break;
+      }
     }
   }
 
@@ -141,9 +148,8 @@ namespace BitSet
     }
   }
 
-  // Call a function for each element contained within the bit set which is not
-  // contained within the other bit set.
-  template<typename Lambda> inline void BitSet::DifferenceForEach(
+  // Call a function for every bit contained within both bit sets.
+  template<typename Lambda> inline void BitSet::ForEachIntersection(
       const BitSet& other, Lambda func) const
   {
     unsigned int index = 0;  // Index of currently inspected element
@@ -155,18 +161,10 @@ namespace BitSet
     const auto b_end = other.m_data.cend();  // End of the other vector
     for (; (a != a_end) && (b != b_end); a++, b++, index++)
     {
-      // Compute the difference of the sets for this word
-      const uint32_t word = (*a) & ~(*b);
+      // Compute the intersection of the sets for this word
+      const uint32_t word = (*a) & (*b);
 
       // Call the function for each set bit in this word
-      ForEachBit(word, index * 32, func);
-    }
-
-    // Any remaining elements in the first vector cannot possibly be in the
-    // second vector, so iterate over them.
-    for (; a != a_end; a++, index++)
-    {
-      const uint32_t word = *a;
       ForEachBit(word, index * 32, func);
     }
   }

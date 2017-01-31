@@ -124,7 +124,7 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
     // While elements remain in the queue colour the nodes.
     while (!queue.empty())
     {
-      auto node = queue.front();
+      const auto node = queue.front();
       queue.pop_front();
 
       if (unvisited.Contains(node))
@@ -158,7 +158,7 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
 
         // Add all unvisited nodes to which this node is connected to the
         // queue.
-        edges.DifferenceForEach(
+        edges.ForEachIntersection(
           unvisited, [&queue] (const unsigned int n) {queue.push_back(n);}
         );
       }

@@ -81,14 +81,21 @@ TEST(BitSetTest, test_count)
 TEST(BitSetTest, test_fill_on_instantiate)
 {
   // Test that a bit set can be filled with ones when created
-  auto a = BitSet::BitSet(129, true);
+  auto a = BitSet::BitSet(142, true);
 
-  ASSERT_EQ(a.Count(), 129);
+  ASSERT_EQ(a.Count(), 142);
 
-  for (unsigned int i = 0; i < 129; i++)
+  for (unsigned int i = 0; i < 142; i++)
   {
     ASSERT_TRUE(a.Contains(i));
   }
+
+  auto set_elements = std::vector<unsigned int>();
+  a.ForEach(
+    [&set_elements] (const unsigned int v) {set_elements.push_back(v);}
+  );
+
+  ASSERT_EQ(set_elements.back(), 141);
 
   // Fill with zeros (clear)
   a.Fill(false);
@@ -149,12 +156,12 @@ TEST(BitSetTest, test_foreach)
 }
 
 
-TEST(BitSetTest, test_difference_foreach)
+TEST(BitSetTest, test_foreach_intersection)
 {
   // Create the first bit set
   auto a = BitSet::BitSet(128);
 
-  static const unsigned int elems_a[] = {4, 31, 34, 64, 65, 123, 127};
+  static const unsigned int elems_a[] = {2, 4, 31, 34, 64, 65, 123, 127};
   for (unsigned int i = 0; i < sizeof(elems_a) / sizeof(elems_a[0]); i++)
   {
     a.Add(elems_a[i]);
@@ -163,58 +170,21 @@ TEST(BitSetTest, test_difference_foreach)
   // Create the second bit set
   auto b = BitSet::BitSet(128);
 
-  static const unsigned int elems_b[] = {2, 31, 65, 127};
+  static const unsigned int elems_b[] = {0, 1, 2, 31, 33, 65, 67, 120, 127};
   for (unsigned int i = 0; i < sizeof(elems_b) / sizeof(elems_b[0]); i++)
   {
     b.Add(elems_b[i]);
   }
 
   // Build a vector to represent the difference
-  static const unsigned int diff[] = {4, 34, 64, 123};
+  static const unsigned int diff[] = {2, 31, 65, 127};
   const auto expected = std::vector<unsigned int>(
       diff, diff + (sizeof(diff) / sizeof(diff[0]))
   );
 
   // Loop over the difference, storing the result
   auto result = std::vector<unsigned int>();
-  a.DifferenceForEach(
-    b, [&result] (const unsigned int v) {result.push_back(v);}
-  );
-
-  // Check that the result is as expected
-  ASSERT_EQ(expected, result);
-}
-
-
-TEST(BitSetTest, test_difference_foreach_different_lengths)
-{
-  // Create the first bit set
-  auto a = BitSet::BitSet(128);
-
-  static const unsigned int elems_a[] = {4, 31, 34, 64, 65, 123, 127};
-  for (unsigned int i = 0; i < sizeof(elems_a) / sizeof(elems_a[0]); i++)
-  {
-    a.Add(elems_a[i]);
-  }
-
-  // Create the second bit set
-  auto b = BitSet::BitSet(65);
-
-  static const unsigned int elems_b[] = {2, 31, 64};
-  for (unsigned int i = 0; i < sizeof(elems_b) / sizeof(elems_b[0]); i++)
-  {
-    b.Add(elems_b[i]);
-  }
-
-  // Build a vector to represent the difference
-  static const unsigned int diff[] = {4, 34, 65, 123, 127};
-  const auto expected = std::vector<unsigned int>(
-      diff, diff + (sizeof(diff) / sizeof(diff[0]))
-  );
-
-  // Loop over the difference, storing the result
-  auto result = std::vector<unsigned int>();
-  a.DifferenceForEach(
+  a.ForEachIntersection(
     b, [&result] (const unsigned int v) {result.push_back(v);}
   );
 
