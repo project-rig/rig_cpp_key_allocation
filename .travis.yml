@@ -1,0 +1,79 @@
+# This script instructs the Travis CI service to build rig_cpp_key_allocation against various
+# versions of Python on both Linux and Mac OS X and also deploys binary and
+# source distributions of rig_cpp_key_allocation to PyPI when testing a tag.
+#
+# Under Linux, the googletest based test suite is executed under Valgrind to
+# check for correct behaviour and lack of memory-leaks. This is not possible
+# under Mac OS at present due to difficulties installing test dependencies on
+# Travis' OS X image.
+#
+# On both Linux and OS X the module is compiled and a short Python test is run.
+#
+# If a Git tag is being tested, this is assumed to be for a new release of
+# rig_cpp_key_allocation and so, after testing, a source distribution and
+# "binary wheel" containing the compiled code is created and then uploaded to
+# PyPI. Since binary wheels cannot currently be created for Linux, this process
+# is only carried out on OS X. Note that though all OS X tests will attempt to
+# upload a source distribution, only the first deployed will be kept. This is
+# not a problem since the source distribution is identical across all
+# platforms.
+
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+# When running under Linux use the container based build infrastructure
+sudo: true
+dist: trusty
+
+# Run against both Linux and OS X
+os:
+  - linux
+  # - osx
+
+# Install dependencies for running the test suite. Note that this is ignored on
+# OS X (where test suite doesn't run either).
+addons:
+  apt:
+    packages:
+      - valgrind
+      - libgtest-dev
+      - libffi-dev
+
+# Setup the required Python version. Since Travis' (beta) OS X support does not
+# yet allow easy selection of Python versions we must manually fetch, install
+# and configure the Python versions we need. To make life simpler we also use
+# this approach under Linux.
+install:
+  - pip install pytest flake8 cffi>=1.0.0 rig>=2.3.0
+  # gtest install
+  - cd /usr/src/gtest
+  - sudo cmake -DBUILD_SHARED_LIBS=ON .
+  - sudo make
+  - sudo mv libgtest* /usr/lib/
+  - cd "${TRAVIS_BUILD_DIR}"
+
+# Test rig_cpp_key_allocation.
+script:
+  # On Linux only: Compile and run the test suite under valgrind to check
+  # for functionality and memory leaks.
+  - >
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      cd tests
+      make
+      cd "${TRAVIS_BUILD_DIR}"
+    else
+      echo "Test suite disabled on OS X!";
+    fi
+  # On Linux and OS X: Make sure CFFI wrapper compiles and the package can be
+  # imported into Python.
+  - python setup.py install
+  - py.test tests  # TODO Add coverage report
+  - flake8 rig_cpp_key_allocation tests
+
+# No pestering!
+notifications:
+  email: false
