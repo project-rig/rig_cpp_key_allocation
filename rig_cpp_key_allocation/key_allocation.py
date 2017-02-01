@@ -1,4 +1,3 @@
-import logging
 from rig.place_and_route.routing_tree import RoutingTree
 from _rig_cpp_key_allocation import ffi
 from _rig_cpp_key_allocation.lib import (
@@ -6,8 +5,6 @@ from _rig_cpp_key_allocation.lib import (
     cffi_add_route_to_graph, cffi_colour_graph
 )
 from six import iterkeys, iteritems
-
-logger = logging.getLogger(__file__)
 
 
 def assign_multicast_net_ids(nets, additional_constraints=dict()):
@@ -26,7 +23,6 @@ def assign_multicast_net_ids(nets, additional_constraints=dict()):
     {net: int}
         TODO
     """
-    logger.debug("Building multicast nets constraint graph...")
     # Give each key a unique ID which will be used when building the graph.
     net_ids = {net: i for i, net in enumerate(iterkeys(nets))}
 
@@ -63,7 +59,6 @@ def assign_multicast_net_ids(nets, additional_constraints=dict()):
                 cffi_add_route_to_graph(graph, net_id, x, y, route)
 
     # Colour the graph before deleting it (and removing the dangling pointer!)
-    logger.debug("Assigning IDs to multicast nets...")
     colouring = ffi.new("unsigned int[]", len(net_ids))
     cffi_colour_graph(graph, colouring)
     cffi_delete_graph(graph)
