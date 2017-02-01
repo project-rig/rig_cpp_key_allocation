@@ -48,7 +48,7 @@ addons:
 # and configure the Python versions we need. To make life simpler we also use
 # this approach under Linux.
 install:
-  - pip install pytest flake8 cffi>=1.0.0 rig>=2.3.0
+  - pip install pytest flake8 cffi>=1.0.0 rig>=2.3.0 codecov
   # gtest install
   - cd /usr/src/gtest
   - sudo cmake -DBUILD_SHARED_LIBS=ON .
@@ -73,6 +73,9 @@ script:
   - python setup.py install
   - py.test tests  # TODO Add coverage report
   - flake8 rig_cpp_key_allocation tests
+
+after_success:
+  - codecov
 
 # No pestering!
 notifications:
