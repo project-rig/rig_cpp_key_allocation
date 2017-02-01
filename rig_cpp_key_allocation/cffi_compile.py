@@ -19,7 +19,7 @@ ffi.set_source(
     source_extension="*.cpp",
     sources=[os.path.join(source_dir, "bitset.cpp"),
              os.path.join(source_dir, "constraints_graph.cpp")],
-    extra_compile_args=["-I" + source_dir]
+    extra_compile_args=["-I" + source_dir, "--std=c++11"]
 )
 
 ffi.cdef("""
