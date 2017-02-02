@@ -1,4 +1,6 @@
 coverage:
   status:
     patch: false
+ignore:
+ - rig_cpp_key_allocation/cffi_compile.py
 comment: false
