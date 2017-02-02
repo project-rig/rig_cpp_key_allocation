@@ -42,6 +42,7 @@ addons:
       - valgrind
       - libgtest-dev
       - libffi-dev
+      - libboost-all-dev
 
 # Setup the required Python version. Since Travis' (beta) OS X support does not
 # yet allow easy selection of Python versions we must manually fetch, install

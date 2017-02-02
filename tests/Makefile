@@ -2,12 +2,12 @@ CFLAGS += -fprofile-arcs -ftest-coverage -Wall -Werror -I../rig_cpp_key_allocati
 VPATH := ../rig_cpp_key_allocation
 
 coverage : run_tests
-	gcov -r constraints_graph bitset test_bitset test_constraints_graph
+	gcov -r constraints_graph test_constraints_graph
 
 run_tests : tests
 	valgrind --leak-check=full -q ./$<
 
-tests : test_main.o test_bitset.o test_constraints_graph.o bitset.o constraints_graph.o
+tests : test_main.o test_constraints_graph.o constraints_graph.o
 	$(CXX) $(CFLAGS) -o $@ $+ -lgtest
 
 %.o : %.cpp

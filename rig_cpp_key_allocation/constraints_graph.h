@@ -1,13 +1,15 @@
 #pragma once
 
+#include <boost/dynamic_bitset.hpp>
 #include <cstdint>
-#include "bitset.h"
 #include <map>
 #include <utility>
 #include <vector>
 
 namespace ConstraintGraphs
 {
+  typedef boost::dynamic_bitset<> bitset;
+
   class ConstraintGraph
   {
     public:
@@ -28,7 +30,7 @@ namespace ConstraintGraphs
       // which with it shares edges. To save space these adjacency lists are
       // stored as bitsets.
       unsigned int m_n_nodes;  // Number of supported nodes.
-      std::vector<BitSet::BitSet> m_edges;
+      std::vector<bitset> m_edges;
   };
 
   typedef std::pair<unsigned int, unsigned int> Chip;

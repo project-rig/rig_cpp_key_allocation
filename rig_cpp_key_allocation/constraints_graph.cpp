@@ -60,7 +60,7 @@ ConstraintGraph::ConstraintGraph(const unsigned int n_nodes)
   m_n_nodes = n_nodes;
 
   // Initialise the edge lists for each of the nodes.
-  m_edges = std::vector<BitSet::BitSet>(n_nodes, BitSet::BitSet(n_nodes));
+  m_edges = std::vector<bitset>(n_nodes, bitset(n_nodes));
 }
 
 
@@ -72,35 +72,35 @@ void ConstraintGraph::AddConstraint(const unsigned int a,
   // are not the same.
   if (a < m_n_nodes && b < m_n_nodes && a != b)
   {
-    m_edges[a].Add(b);
-    m_edges[b].Add(a);
+    m_edges[a].set(b);
+    m_edges[b].set(a);
   }
 }
 
 /*****************************************************************************/
 // Return the index of the node with the highest degree
-unsigned int GetHighestDegreeNode(const BitSet::BitSet& nodes,
-                                  const std::vector<BitSet::BitSet>& edges)
+unsigned int GetHighestDegreeNode(const bitset& nodes,
+                                  const std::vector<bitset>& edges)
 {
   unsigned int node = 0;
   unsigned int largest_degree = 0;
 
-  nodes.ForEach(
-    [&node, &largest_degree, &edges] (const unsigned int n)
-    {
-      // Get the degree for this node
-      const unsigned int node_degree = edges[n].Count();
+  for (auto n = nodes.find_first();
+       n < nodes.size();
+       n = nodes.find_next(n))
+  {
+    // Get the degree for this node
+    const unsigned int node_degree = edges[n].count();
 
-      // If the degree is largest than the previously recorded largest degree or
-      // no degree has yet been set record this as the node with the highest
-      // degree.
-      if (node_degree > largest_degree || largest_degree == 0)
-      {
-        node = n;
-        largest_degree = node_degree;
-      }
+    // If the degree is largest than the previously recorded largest degree or
+    // no degree has yet been set record this as the node with the highest
+    // degree.
+    if (node_degree > largest_degree || largest_degree == 0)
+    {
+      node = n;
+      largest_degree = node_degree;
     }
-  );
+  }
 
   return node;
 }
@@ -108,13 +108,14 @@ unsigned int GetHighestDegreeNode(const BitSet::BitSet& nodes,
 void ConstraintGraph::ColourGraph(unsigned int* const colouring)
 {
   // Store a list of sets of nodes which can share a colour
-  auto colours = std::vector<BitSet::BitSet>();
+  auto colours = std::vector<bitset>();
 
   // Maintain a list of nodes which haven't been visited
-  auto unvisited = BitSet::BitSet(m_n_nodes, true);
+  auto unvisited = bitset(m_n_nodes);
+  unvisited.set();  // All nodes are unvisited
 
   // While there are still unvisited nodes
-  while (unvisited.Any())
+  while (unvisited.any())
   {
     auto queue = std::deque<unsigned int>();
 
@@ -127,10 +128,10 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
       const auto node = queue.front();
       queue.pop_front();
 
-      if (unvisited.Contains(node))
+      if (unvisited[node])
       {
         // Mark this node as visited
-        unvisited.Remove(node);
+        unvisited.set(node, false);
 
         // Find the first legal colour for the node and assign it that colour,
         // if no existing colour would be suitable then add a new colour to the
@@ -139,10 +140,10 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
         auto coloured = false;  // Indicate that the node was assigned a colour
         for (auto& colour_group : colours)
         {
-          if (colour_group.IsDisjoint(edges))
+          if (!colour_group.intersects(edges))
           {
             // Add the node to this colour group and exit the loop.
-            colour_group.Add(node);
+            colour_group.set(node);
             coloured = true;
             break;
           }
@@ -152,15 +153,19 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
         {
           // If no colour group was found suitable then add a whole new colour
           // group to the set of colours and add the node to this colour.
-          colours.push_back(BitSet::BitSet(m_n_nodes));
-          colours.back().Add(node);
+          colours.push_back(bitset(m_n_nodes));
+          colours.back().set(node);
         }
 
         // Add all unvisited nodes to which this node is connected to the
         // queue.
-        edges.ForEachIntersection(
-          unvisited, [&queue] (const unsigned int n) {queue.push_back(n);}
-        );
+        auto connected_and_unvisited = edges & unvisited;
+        for (auto n = connected_and_unvisited.find_first();
+             n < connected_and_unvisited.size();
+             n = connected_and_unvisited.find_next(n))
+        {
+          queue.push_back(n);
+        }
       }
     }
   }
@@ -171,9 +176,12 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
   {
     // Write the colour into the colouring for each node contained within this
     // group.
-    nodes.ForEach(
-      [&colouring, colour] (const unsigned int n) {colouring[n] = colour;}
-    );
+    for (auto n = nodes.find_first();
+         n < nodes.size();
+         n = nodes.find_next(n))
+    {
+      colouring[n] = colour;
+    }
     colour++;  // Pick the next colour
   }
 }
