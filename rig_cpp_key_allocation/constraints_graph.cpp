@@ -77,6 +77,21 @@ void ConstraintGraph::AddConstraint(const unsigned int a,
   }
 }
 
+
+// Check for the presence of a constraint in the graph.
+bool ConstraintGraph::ContainsConstraint(const unsigned a,
+                                         const unsigned b) const
+{
+  if (a < m_n_nodes && b < m_n_nodes)
+  {
+    return m_edges[a][b];
+  }
+  else
+  {
+    return false;
+  }
+}
+
 /*****************************************************************************/
 // Return the index of the node with the highest degree
 unsigned int GetHighestDegreeNode(const bitset& nodes,

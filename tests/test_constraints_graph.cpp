@@ -21,6 +21,61 @@ class CFFITest : public ::testing::Test
 };
 
 
+TEST(ConstraintsGraphTest, test_add_edge)
+{
+  typedef std::pair<unsigned int, unsigned int> Constraint;
+  auto edges = std::vector<Constraint>();
+  edges.push_back(Constraint(0, 1));
+  edges.push_back(Constraint(1, 3));
+
+  auto not_edges = std::vector<Constraint>();
+  not_edges.push_back(Constraint(0, 2));
+  not_edges.push_back(Constraint(0, 3));
+  not_edges.push_back(Constraint(1, 2));
+  not_edges.push_back(Constraint(2, 3));
+
+  // Test adding edges
+  auto g = ConstraintGraph(4);
+  for (auto& edge : edges)
+  {
+    g.AddConstraint(edge.first, edge.second);
+  }
+
+  // Check for the presence and absence of edges
+  for (auto& edge : edges)
+  {
+    // Present edges
+    EXPECT_TRUE(g.ContainsConstraint(edge.first, edge.second));
+  }
+  for (auto& edge : not_edges)
+  {
+    // Absent edges
+    EXPECT_FALSE(g.ContainsConstraint(edge.first, edge.second));
+    EXPECT_FALSE(g.ContainsConstraint(edge.second, edge.first));
+  }
+}
+
+
+TEST(ConstraintsGraphTest, test_contains_constraint_out_of_range)
+{
+  // Check that false is returned for edges that are out of range
+  // Create a complete graph
+  auto g = ConstraintGraph(4);
+  for (unsigned int i = 0; i < 4; i++)
+  {
+    for (unsigned int j = i + 1; j < 4; j++)
+    {
+      g.AddConstraint(i, j);
+    }
+  }
+
+  ASSERT_TRUE(g.ContainsConstraint(0, 1));  // Sanity check
+
+  ASSERT_FALSE(g.ContainsConstraint(0, 4));
+  ASSERT_FALSE(g.ContainsConstraint(4, 0));
+}
+
+
 TEST(ConstraintsGraphTest, test_colour_simple_graph)
 {
   /* Construct the following graph:
@@ -117,12 +172,10 @@ TEST(ConstraintsGraphTest, test_colour_graph_with_cliques)
 }
 
 
-TEST(MulticastKeyConstraintsGraphTest, test_colour_graph)
+TEST(MulticastKeyConstraintsGraphTest, test_add_route)
 {
-  /* We construct a graph consisting of four nets, a pair of these nets take a
-   * different turn at one chip. One of these nets shares an additional
-   * constraint with another net. Overall three colours should be required to
-   * colour the graph.
+  /* Add multiple routes to a graph and check that the appropriate constraints
+   * are created.
    */
   auto g = MulticastKeyConstraintGraph(4);  // Create the graph
 
@@ -135,30 +188,33 @@ TEST(MulticastKeyConstraintsGraphTest, test_colour_graph)
   g.AddRoute(1, 1, 0, 0x2);  // North east at chip (1, 0)
 
   // Create net 2
-  g.AddRoute(2, 0, 1, 0x1);  // East at chip (0, 1)
-  g.AddRoute(2, 1, 1, 0x2);  // North east at chip (1, 1)
+  g.AddRoute(2, 0, 1, 0x4);  // North at chip (0, 1)
+  g.AddRoute(2, 0, 2, 0x2);  // North east at chip (0, 2)
 
   // Create net 3
   g.AddRoute(3, 0, 2, 0x1);  // East at chip (0, 2)
   g.AddRoute(3, 1, 2, 0x2);  // North east at chip (1, 2)
 
-  // Add an additional constraint which stops nets 0 and 2 sharing an
-  // identifier.
-  g.AddConstraint(0, 2);
+  // The graph should have edges (0, 1) and (2, 3).
+  ASSERT_FALSE(g.ContainsConstraint(0, 0));
+  ASSERT_TRUE(g.ContainsConstraint(0, 1));
+  ASSERT_FALSE(g.ContainsConstraint(0, 2));
+  ASSERT_FALSE(g.ContainsConstraint(0, 3));
 
-  /* The graph should now be equal to:
-   *
-   *   (1)    (3)
-   *    |
-   *    |
-   *   (0) -- (2)
-   */
-  unsigned int colouring[4];
-  g.ColourGraph(colouring);
+  ASSERT_TRUE(g.ContainsConstraint(1, 0));
+  ASSERT_FALSE(g.ContainsConstraint(1, 1));
+  ASSERT_FALSE(g.ContainsConstraint(1, 2));
+  ASSERT_FALSE(g.ContainsConstraint(1, 3));
 
-  // Check that the colouring was valid
-  ASSERT_NE(colouring[0], colouring[1]);
-  ASSERT_NE(colouring[0], colouring[2]);
+  ASSERT_FALSE(g.ContainsConstraint(2, 0));
+  ASSERT_FALSE(g.ContainsConstraint(2, 1));
+  ASSERT_FALSE(g.ContainsConstraint(2, 2));
+  ASSERT_TRUE(g.ContainsConstraint(2, 3));
+
+  ASSERT_FALSE(g.ContainsConstraint(3, 0));
+  ASSERT_FALSE(g.ContainsConstraint(3, 1));
+  ASSERT_TRUE(g.ContainsConstraint(3, 2));
+  ASSERT_FALSE(g.ContainsConstraint(3, 3));
 }
 
 

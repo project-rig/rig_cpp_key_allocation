@@ -21,6 +21,10 @@ namespace ConstraintGraphs
       // graph.
       void AddConstraint(const unsigned int a, const unsigned int b);
 
+      // Test for the presence of an edge
+      bool ContainsConstraint(const unsigned int a,
+                              const unsigned int b) const;
+
       // Colour the nodes in the graph and write the colouring out into the
       // specified array (which should be of length `n_nodes`).
       void ColourGraph(unsigned int* const colouring);
