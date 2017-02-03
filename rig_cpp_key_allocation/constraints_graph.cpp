@@ -1,5 +1,5 @@
 #include "constraints_graph.h"
-#include <deque>
+#include <queue>
 
 using namespace ConstraintGraphs;
 
@@ -132,16 +132,16 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
   // While there are still unvisited nodes
   while (unvisited.any())
   {
-    auto queue = std::deque<unsigned int>();
+    auto queue = std::queue<unsigned int>();
 
     // Add the unvisited node with the greatest degree to the queue.
-    queue.push_back(GetHighestDegreeNode(unvisited, m_edges));
+    queue.push(GetHighestDegreeNode(unvisited, m_edges));
 
     // While elements remain in the queue colour the nodes.
     while (!queue.empty())
     {
       const auto node = queue.front();
-      queue.pop_front();
+      queue.pop();
 
       if (unvisited[node])
       {
@@ -179,7 +179,7 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
              n < connected_and_unvisited.size();
              n = connected_and_unvisited.find_next(n))
         {
-          queue.push_back(n);
+          queue.push(n);
         }
       }
     }
