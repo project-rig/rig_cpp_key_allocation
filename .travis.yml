@@ -49,7 +49,7 @@ addons:
 # and configure the Python versions we need. To make life simpler we also use
 # this approach under Linux.
 install:
-  - pip install pytest pytest-cov flake8 cffi>=1.0.0 rig>=2.3.0 codecov
+  - pip install cffi>=1.0.0 codecov
   # gtest install
   - cd /usr/src/gtest
   - sudo cmake -DBUILD_SHARED_LIBS=ON .
@@ -72,8 +72,7 @@ script:
   # On Linux and OS X: Make sure CFFI wrapper compiles and the package can be
   # imported into Python.
   - python setup.py install
-  - py.test tests --cov "$(./utils/rig_cpp_key_allocation_path.py)" --cov tests
-  - flake8 rig_cpp_key_allocation tests
+  - python -c "from rig_cpp_key_allocation import *"
 
 after_success:
   - codecov

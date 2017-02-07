@@ -37,7 +37,7 @@ extern "C"
       const unsigned int net,
       const unsigned int x,
       const unsigned int y,
-      const uint32_t route
+      const unsigned int route
   )
   {
     graph->AddRoute(net, x, y, route);
@@ -60,7 +60,7 @@ ConstraintGraph::ConstraintGraph(const unsigned int n_nodes)
   m_n_nodes = n_nodes;
 
   // Initialise the edge lists for each of the nodes.
-  m_edges = std::vector<bitset>(n_nodes, bitset(n_nodes));
+  m_edges = std::vector<bitset >(n_nodes, bitset(n_nodes));
 }
 
 
@@ -95,12 +95,12 @@ bool ConstraintGraph::ContainsConstraint(const unsigned a,
 /*****************************************************************************/
 // Return the index of the node with the highest degree
 unsigned int GetHighestDegreeNode(const bitset& nodes,
-                                  const std::vector<bitset>& edges)
+                                  const std::vector<bitset >& edges)
 {
   unsigned int node = 0;
   unsigned int largest_degree = 0;
 
-  for (auto n = nodes.find_first();
+  for (unsigned int n = nodes.find_first();
        n < nodes.size();
        n = nodes.find_next(n))
   {
@@ -123,16 +123,16 @@ unsigned int GetHighestDegreeNode(const bitset& nodes,
 void ConstraintGraph::ColourGraph(unsigned int* const colouring)
 {
   // Store a list of sets of nodes which can share a colour
-  auto colours = std::vector<bitset>();
+  std::vector<bitset > colours = std::vector<bitset >();
 
   // Maintain a list of nodes which haven't been visited
-  auto unvisited = bitset(m_n_nodes);
+  bitset unvisited = bitset(m_n_nodes);
   unvisited.set();  // All nodes are unvisited
 
   // While there are still unvisited nodes
   while (unvisited.any())
   {
-    auto queue = std::queue<unsigned int>();
+    std::queue<unsigned int> queue = std::queue<unsigned int>();
 
     // Add the unvisited node with the greatest degree to the queue.
     queue.push(GetHighestDegreeNode(unvisited, m_edges));
@@ -140,7 +140,7 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
     // While elements remain in the queue colour the nodes.
     while (!queue.empty())
     {
-      const auto node = queue.front();
+      const unsigned int node = queue.front();
       queue.pop();
 
       if (unvisited[node])
@@ -151,14 +151,15 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
         // Find the first legal colour for the node and assign it that colour,
         // if no existing colour would be suitable then add a new colour to the
         // set of colours.
-        auto edges = m_edges[node];
-        auto coloured = false;  // Indicate that the node was assigned a colour
-        for (auto& colour_group : colours)
+        bitset edges = m_edges[node];
+        bool coloured = false;  // Indicate that the node was assigned a colour
+        for (std::vector<bitset >::iterator group = colours.begin();
+             group != colours.end(); ++group)
         {
-          if (!colour_group.intersects(edges))
+          if (!group->intersects(edges))
           {
             // Add the node to this colour group and exit the loop.
-            colour_group.set(node);
+            group->set(node);
             coloured = true;
             break;
           }
@@ -174,8 +175,8 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
 
         // Add all unvisited nodes to which this node is connected to the
         // queue.
-        auto connected_and_unvisited = edges & unvisited;
-        for (auto n = connected_and_unvisited.find_first();
+        bitset connected_and_unvisited = edges & unvisited;
+        for (unsigned int n = connected_and_unvisited.find_first();
              n < connected_and_unvisited.size();
              n = connected_and_unvisited.find_next(n))
         {
@@ -187,13 +188,14 @@ void ConstraintGraph::ColourGraph(unsigned int* const colouring)
 
   // Now write the colouring into the colouring array
   unsigned int colour = 0;
-  for (const auto& nodes : colours)
+  for (std::vector<bitset >::const_iterator nodes = colours.begin();
+       nodes != colours.end(); ++nodes)
   {
     // Write the colour into the colouring for each node contained within this
     // group.
-    for (auto n = nodes.find_first();
-         n < nodes.size();
-         n = nodes.find_next(n))
+    for (unsigned int n = nodes->find_first();
+         n < nodes->size();
+         n = nodes->find_next(n))
     {
       colouring[n] = colour;
     }
@@ -217,18 +219,23 @@ void MulticastKeyConstraintGraph::AddRoute(const unsigned int net,
                                            const unsigned int y,
                                            const Route route)
 {
-  auto chip = Chip(x, y);  // Get a reference to the chip
+  Chip chip = Chip(x, y);  // Get a reference to the chip
   m_routes[chip][route].push_back(net);  // Add the net
 
   // Add a constraint to the graph for every other net which takes a different
   // route from this chip.
-  for (const auto& item : m_routes[chip])
+  typedef std::map<Route, std::vector<unsigned int > > RouteToNets;
+  RouteToNets chip_routes = m_routes[chip];
+
+  for (RouteToNets::const_iterator item = m_routes[chip].begin();
+       item != m_routes[chip].end(); ++item)
   {
-    if (item.first != route)  // If the routes are different
+    if (item->first != route)  // If the routes are different
     {
-      for (const auto& other_net : item.second)  // For every net
+      for (std::vector<unsigned int >::const_iterator other_net =
+            item->second.begin(); other_net != item->second.end(); ++other_net)
       {
-        AddConstraint(net, other_net);
+        AddConstraint(net, *other_net);
       }
     }
   }

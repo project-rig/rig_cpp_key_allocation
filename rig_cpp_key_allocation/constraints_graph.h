@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boost/dynamic_bitset.hpp>
-#include <cstdint>
 #include <map>
 #include <utility>
 #include <vector>
@@ -34,11 +33,11 @@ namespace ConstraintGraphs
       // which with it shares edges. To save space these adjacency lists are
       // stored as bitsets.
       unsigned int m_n_nodes;  // Number of supported nodes.
-      std::vector<bitset> m_edges;
+      std::vector<bitset > m_edges;
   };
 
   typedef std::pair<unsigned int, unsigned int> Chip;
-  typedef uint32_t Route;
+  typedef unsigned int Route;
 
   class MulticastKeyConstraintGraph : public ConstraintGraph
   {
@@ -86,7 +85,7 @@ extern "C"
       const unsigned int net,
       const unsigned int x,
       const unsigned int y,
-      const uint32_t route
+      const unsigned int route
   );
 
   // Colour the graph, writing the result into the provided array
