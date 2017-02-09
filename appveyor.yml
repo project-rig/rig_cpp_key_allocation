@@ -18,7 +18,7 @@ environment:
   # The (encrypted) password for the 'rigbots' PyPI account, used for
   # deployment.
   PYPIPASSWORD:
-    secure: o5RqpBL+6iPfYTqQpoqfjbAoNGBl2Q8dDTnY0SZ6FsUQOIwba1Jd/1UQ8vZe71v2
+    secure: emFClRFO734uQiW7nsNaleA2vrlO3dvROZA8tuIIIzHFT7ltPLj1zh0DM2BkA2JQ 
 
   # Test against the various Python versions and 32- and 64-bit versions of
   # Windows.
