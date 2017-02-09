@@ -6,6 +6,7 @@ Stand-alone usage:
 """
 
 import os
+import platform
 from cffi import FFI
 ffi = FFI()
 
@@ -16,9 +17,11 @@ ffi.set_source(
     r"""
     #include "constraints_graph.h"
     """,
-    source_extension="*.cpp",
+    source_extension=".cpp",
     sources=[os.path.join(source_dir, "constraints_graph.cpp")],
-    extra_compile_args=["-I" + source_dir, "--std=c++11"]
+    include_dirs=[source_dir] + (
+        ["C:\\Libraries\\boost\\"] if platform.system() == "Windows" else []
+    ),
 )
 
 ffi.cdef("""

@@ -49,5 +49,5 @@ setup(
     # Build CFFI Interface
     cffi_modules=["rig_cpp_key_allocation/cffi_compile.py:ffi"],
     setup_requires=["cffi>=1.0.0"],
-    install_requires=["cffi>=1.0.0", "rig>=2.3.0"],
+    install_requires=["cffi>=1.0.0"],
 )
