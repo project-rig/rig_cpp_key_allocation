@@ -39,7 +39,7 @@ dist: trusty
 # Run against both Linux and OS X
 os:
   - linux
-  # - osx
+  - osx
 
 # Install dependencies for running the test suite. Note that this is ignored on
 # OS X (where test suite doesn't run either).
