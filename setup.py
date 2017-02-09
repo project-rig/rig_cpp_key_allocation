@@ -21,8 +21,8 @@ setup(
     # Metadata for PyPi
     url="https://github.com/project-rig/rig_cpp_key_allocation",
     author="The Rig Authors",
-    description=("A C++ library (and CFFI Python Interface) for assigning " +
-                 "SpiNNaker multicast routing keys."),
+    description=("A C++ library (and CFFI Python interface) for allocating " +
+                 "SpiNNaker multicast keys."),
     license="GPLv2",
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -41,6 +41,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
 
         "Topic :: Software Development :: Libraries",
     ],

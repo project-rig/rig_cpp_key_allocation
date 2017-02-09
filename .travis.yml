@@ -25,6 +25,13 @@ python:
   - "3.5"
   - "3.6"
 
+env:
+  # The (encrypted) password for the 'rigbots' PyPI account, used for
+  # deployment.
+  global:
+    # PYPIPASSWORD=...
+    secure: "WQEAx6rliDGGDmHhsDBsGCR+nUf4CJFWSq+6+tx4F5Z3tOE5YBLoZ+jkJWuAB5841FwrHD0Cf8Ihoxfx/1tNDj8wBlDDNE+M1tL9izakPoJGLjK6B1iBLswG8Nv7jkl4EEZQniVhsQkdLLqiw/hYjnlhMUPd5vzHC9pJAwFwEIBvfQajigkp7ENj+D+9FI5OV534XuAuoiPN45G6IhDMrdDpDa4BGp/7w9FvSzOKjUHqAqNSYnkDiS//xciRwrGbXXhYmYkS4bWqCPBV5ZusmNC9Mnr1IfsFyVeuvumWr9Tifl4L3bH/NhGLJPrvYkg8KUo8AVabQquKcpPzDysW/3C9s3ihuKDQIUa0q2nvO7+Ya1tABeENj+v6FKbUIyQ1KsO2j7pI2Sm6rHa9hz0MVIrTR999+0/qIxP8UWpM1Z2mr3pLhc4ffh3AtxieBKP7NadjPaCRcD/pXLUf0pdDGwxN9bbTkH+yvkGpHbpUPZxLsvkqbjlq1R94mRaVYx/ARvHO2hXC2vp6NuGZSCVMaItuLYF3pKMYBHrLhUwYaTMKPWkg3/aybI5hNDRgZEIs7t+pSQ/vXlxsL7C6z4iJ0GxAlIRbj9jONd2DgEUylCUs4/G+h14PrGdwN38mpH8BXIdjb1KL9tsyITYL/9Dx7TwasZLMJyeAaumYxPxCnJ8="
+
 # When running under Linux use the container based build infrastructure
 sudo: true
 dist: trusty
@@ -75,7 +82,33 @@ script:
   - python -c "from rig_cpp_key_allocation import *"
 
 after_success:
+  # Generate coverage report for Python and C++
   - codecov
+
+  # Specify account details for PyPI
+  - echo "[distutils]"                                  > ~/.pypirc
+  - echo "index-servers ="                             >> ~/.pypirc
+  - echo "    pypi"                                    >> ~/.pypirc
+  - echo "[pypi]"                                      >> ~/.pypirc
+  - echo "repository=https://pypi.python.org/pypi" >> ~/.pypirc
+  - echo "username=rigbots"                            >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                      >> ~/.pypirc
+
+  # For OS X and tags only, build a Python source distribution and "binary
+  # wheel" and upload these to PyPI. Note that the source upload will only
+  # succeed the first time and will be skipped by twine in subsiquent attempts.
+  - >
+    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      if [ -n "$TRAVIS_TAG" ]; then
+        pip install twine;
+        python setup.py sdist bdist_wheel;
+        twine upload --skip-existing dist/*;
+      else
+        echo "Not deploying as not a tagged commit."
+      fi
+    else
+      echo "Not deploying as not running on OS X";
+    fi
 
 # No pestering!
 notifications:
